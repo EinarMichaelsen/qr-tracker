@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { db } from "@/db";
 import { qrCodes } from "@/db/schema";
 import { nanoid } from "nanoid";
@@ -27,7 +28,10 @@ export async function createQrCode(url: string): Promise<CreateQrResult> {
   }
 
   const shortCode = nanoid(8);
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const headersList = await headers();
+  const host = headersList.get("host") || "localhost:3000";
+  const proto = headersList.get("x-forwarded-proto") || "https";
+  const appUrl = `${proto}://${host}`;
   const trackingUrl = `${appUrl}/r/${shortCode}`;
 
   await db.insert(qrCodes).values({
